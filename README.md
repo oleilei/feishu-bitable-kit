@@ -17,8 +17,8 @@ uglifyjs feishu-bitable.js -c -m -o 1.0.1/feishu-bitable.min.js
 ```
 
 ### 通过 npm 安装
-
 ```bash
+// 先修改 version 版本号
 npm install feishu-bitable
 ```
 
