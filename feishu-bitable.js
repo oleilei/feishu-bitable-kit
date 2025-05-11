@@ -1,9 +1,9 @@
 /**
  * FeishuBitable - 飞书多维表格 CRUD 操作库
- * @version 1.0.4
+ * @version 1.0.5
  * @author oeilei
  * @contact 19131449@qq.com
- * @date 2025-05-11
+ * @date 2025-05-12
  * @license MIT
  */
 (function (global) {
@@ -41,10 +41,10 @@
     // 封装请求方法
     async makeRequest(url, options, retryCount = 0) {
       try {
-        console.debug(`[FeishuBitable] ${options.method} ${url}`, {
-          headers: options.headers,
-          body: options.body
-        });
+        // console.debug(`[FeishuBitable] ${options.method} ${url}`, {
+        //   headers: options.headers,
+        //   body: options.body
+        // });
         return await new Promise((resolve, reject) => {
           // 使用原生 fetch
           if (typeof fetch !== "undefined") {
