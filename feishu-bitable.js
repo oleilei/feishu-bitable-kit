@@ -50,7 +50,7 @@
           if (typeof GM_xmlhttpRequest !== "undefined") {
             GM_xmlhttpRequest({
               url: url,
-              method: options.method || "GET",
+              method: options.method || "POST",
               headers: options.headers || {},
               data: options.body,
               timeout: 10000,
@@ -303,7 +303,7 @@
           method: "POST",
           headers: headers,
           body: JSON.stringify({
-            record_ids: recordIds,
+            records: recordIds,
           }),
         });
 
