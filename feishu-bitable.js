@@ -1,6 +1,6 @@
 /**
  * FeishuBitable - 飞书多维表格 CRUD 操作库
- * @version 1.0.0
+ * @version 1.0.3
  * @author oeilei
  * @contact 19131449@qq.com
  * @date 2025-05-11
@@ -46,8 +46,35 @@
           body: options.body
         });
         return await new Promise((resolve, reject) => {
-          // 优先使用 GM_xmlhttpRequest（油猴环境）
-          if (typeof GM_xmlhttpRequest !== "undefined") {
+          // 优先使用原生 fetch
+          if (typeof fetch !== "undefined") {
+            fetch(url, {
+              method: options.method || "GET",
+              headers: {
+                ...options.headers,
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+              },
+              body: options.body,
+              mode: 'cors',
+              credentials: 'include',
+              timeout: 10000,
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.code !== 0) {
+                  reject(new FeishuBitableError(data.msg || "请求失败", data.code, data));
+                } else {
+                  resolve(data);
+                }
+              })
+              .catch((error) => {
+                reject(new FeishuBitableError("网络请求失败", "NETWORK_ERROR", error));
+              });
+          }
+          // 其次使用 GM_xmlhttpRequest（油猴环境）
+          else if (typeof GM_xmlhttpRequest !== "undefined") {
             GM_xmlhttpRequest({
               url: url,
               method: options.method || "POST",
@@ -73,26 +100,6 @@
                 reject(new FeishuBitableError("请求超时", "TIMEOUT_ERROR"));
               },
             });
-          }
-          // 其次使用原生 fetch
-          else if (typeof fetch !== "undefined") {
-            fetch(url, {
-              method: options.method || "GET",
-              headers: options.headers || {},
-              body: options.body,
-              timeout: 10000,
-            })
-              .then((response) => response.json())
-              .then((data) => {
-                if (data.code !== 0) {
-                  reject(new FeishuBitableError(data.msg || "请求失败", data.code, data));
-                } else {
-                  resolve(data);
-                }
-              })
-              .catch((error) => {
-                reject(new FeishuBitableError("网络请求失败", "NETWORK_ERROR", error));
-              });
           }
           // 最后使用 XMLHttpRequest
           else {
