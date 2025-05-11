@@ -1,13 +1,13 @@
 {
   "name": "feishu-bitable",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "飞书多维表格 CRUD 操作库",
   "main": "feishu-bitable.js",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "build": "uglifyjs feishu-bitable.js -c -m -o feishu-bitable.min.js"
+    "build": "mkdir -p dict/$npm_package_version && uglifyjs feishu-bitable.js -c -m -o dict/$npm_package_version/feishu-bitable.min.js"
   },
   "keywords": [
     "feishu",
@@ -26,5 +26,8 @@
     "collectCoverageFrom": [
       "feishu-bitable.js"
     ]
+  },
+  "dependencies": {
+    "uglifyjs": "^2.4.11"
   }
-} 
+}

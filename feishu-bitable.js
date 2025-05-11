@@ -46,28 +46,8 @@
           body: options.body
         });
         return await new Promise((resolve, reject) => {
-          // 优先使用原生 fetch
-          if (typeof fetch !== "undefined") {
-            fetch(url, {
-              method: options.method || "GET",
-              headers: options.headers || {},
-              body: options.body,
-              timeout: 10000,
-            })
-              .then((response) => response.json())
-              .then((data) => {
-                if (data.code !== 0) {
-                  reject(new Error(data.msg || "请求失败"));
-                } else {
-                  resolve(data);
-                }
-              })
-              .catch((error) => {
-                reject(error);
-              });
-          }
-          // 其次使用 GM_xmlhttpRequest（油猴环境）
-          else if (typeof GM_xmlhttpRequest !== "undefined") {
+          // 优先使用 GM_xmlhttpRequest（油猴环境）
+          if (typeof GM_xmlhttpRequest !== "undefined") {
             GM_xmlhttpRequest({
               url: url,
               method: options.method || "GET",
@@ -78,21 +58,41 @@
                 try {
                   const data = JSON.parse(response.responseText);
                   if (data.code !== 0) {
-                    reject(new Error(data.msg || "请求失败"));
+                    reject(new FeishuBitableError(data.msg || "请求失败", data.code, data));
                   } else {
                     resolve(data);
                   }
                 } catch (error) {
-                  reject(new Error("解析响应失败"));
+                  reject(new FeishuBitableError("解析响应失败", "PARSE_ERROR", error));
                 }
               },
               onerror: function (error) {
-                reject(error);
+                reject(new FeishuBitableError("网络请求失败", "NETWORK_ERROR", error));
               },
               ontimeout: function () {
-                reject(new Error("请求超时"));
+                reject(new FeishuBitableError("请求超时", "TIMEOUT_ERROR"));
               },
             });
+          }
+          // 其次使用原生 fetch
+          else if (typeof fetch !== "undefined") {
+            fetch(url, {
+              method: options.method || "GET",
+              headers: options.headers || {},
+              body: options.body,
+              timeout: 10000,
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.code !== 0) {
+                  reject(new FeishuBitableError(data.msg || "请求失败", data.code, data));
+                } else {
+                  resolve(data);
+                }
+              })
+              .catch((error) => {
+                reject(new FeishuBitableError("网络请求失败", "NETWORK_ERROR", error));
+              });
           }
           // 最后使用 XMLHttpRequest
           else {
@@ -110,19 +110,19 @@
               try {
                 const data = JSON.parse(xhr.responseText);
                 if (data.code !== 0) {
-                  reject(new Error(data.msg || "请求失败"));
+                  reject(new FeishuBitableError(data.msg || "请求失败", data.code, data));
                 } else {
                   resolve(data);
                 }
               } catch (error) {
-                reject(new Error("解析响应失败"));
+                reject(new FeishuBitableError("解析响应失败", "PARSE_ERROR", error));
               }
             };
             xhr.onerror = function (error) {
-              reject(error);
+              reject(new FeishuBitableError("网络请求失败", "NETWORK_ERROR", error));
             };
             xhr.ontimeout = function () {
-              reject(new Error("请求超时"));
+              reject(new FeishuBitableError("请求超时", "TIMEOUT_ERROR"));
             };
             xhr.send(options.body);
           }
