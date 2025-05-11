@@ -13,7 +13,7 @@ uglifyjs feishu-bitable.js -c -m -o 1.0.1/feishu-bitable.min.js
 ### 通过 CDN 使用
 
 ```html
-<script src="https://oss.techclub.plus/dict/feishu-bitable.min.js"></script>
+<script src="https://oss.techclub.plus/dict/1.0.2/feishu-bitable.min.js"></script>
 ```
 
 ### 通过 npm 安装
@@ -77,7 +77,7 @@ const bitable = new FeishuBitable(
 ### Tampermonkey 环境
 
 ```javascript
-// @require https://oss.techclub.plus/dict/feishu-bitable.min.js
+// @require https://oss.techclub.plus/dict/1.0.2/feishu-bitable.min.js
 
 const bitable = new FeishuBitable(
   'your_app_id',
