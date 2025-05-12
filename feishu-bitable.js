@@ -13,37 +13,24 @@
   let feishuConfig;
   function loadRemoteConfig(configUrl) {
     return new Promise((resolve, reject) => {
-      if (typeof fetch !== "undefined") {
-        fetch(configUrl)
-          .then(response => response.json())
-          .then(config => {
-            feishuConfig = config;
-            resolve(config);
-          })
-          .catch(error => {
-            console.warn('Failed to load remote config:', error);
-            reject(error);
-          });
-      } else {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', configUrl, true);
-        xhr.onload = function() {
-          if (xhr.status === 200) {
-            try {
-              feishuConfig = JSON.parse(xhr.responseText);
-              resolve(feishuConfig);
-            } catch (e) {
-              reject(new Error('Failed to parse config'));
-            }
-          } else {
-            reject(new Error('Failed to load config'));
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', configUrl, true);
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          try {
+            feishuConfig = JSON.parse(xhr.responseText);
+            resolve(feishuConfig);
+          } catch (e) {
+            reject(new Error('Failed to parse config'));
           }
-        };
-        xhr.onerror = function() {
+        } else {
           reject(new Error('Failed to load config'));
-        };
-        xhr.send();
-      }
+        }
+      };
+      xhr.onerror = function() {
+        reject(new Error('Failed to load config'));
+      };
+      xhr.send();
     });
   }
 
