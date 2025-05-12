@@ -7,7 +7,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "build": "mkdir -p dict/$npm_package_version && uglifyjs feishu-bitable.js -c -m -o dict/$npm_package_version/feishu-bitable.min.js"
+    "build": "mkdir -p dict/$npm_package_version && uglifyjs feishu-bitable.js -c -m -o dict/$npm_package_version/feishu-bitable.min.js",
+    "build-libs": "uglifyjs libs/4.17.21/lodash.js -c -m -o libs/4.17.21/lodash.min.js"
   },
   "keywords": [
     "feishu",
