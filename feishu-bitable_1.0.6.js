@@ -1,6 +1,6 @@
 /**
  * FeishuBitable - 飞书多维表格 CRUD 操作库
- * @version 1.0.8
+ * @version 1.0.6
  * @author oeilei
  * @contact 19131449@qq.com
  * @date 2025-05-12
@@ -8,38 +8,6 @@
  */
 (function (global) {
   "use strict";
-
-  // 尝试加载远程配置文件
-  let feishuConfig;
-  function loadRemoteConfig(configUrl) {
-    return new Promise((resolve, reject) => {
-      // 生成唯一的回调函数名
-      const callbackName = 'jsonp_callback_' + Math.round(Math.random() * 1000000);
-      
-      // 创建全局回调函数
-      window[callbackName] = function(data) {
-        try {
-          feishuConfig = data;
-          resolve(data);
-        } catch (e) {
-          reject(new Error('Failed to parse config'));
-        }
-        // 清理
-        delete window[callbackName];
-        document.body.removeChild(script);
-      };
-
-      // 创建script标签
-      const script = document.createElement('script');
-      script.src = `${configUrl}?callback=${callbackName}`;
-      script.onerror = function() {
-        delete window[callbackName];
-        document.body.removeChild(script);
-        reject(new Error('Failed to load config'));
-      };
-      document.body.appendChild(script);
-    });
-  }
 
   // 自定义错误类
   class FeishuBitableError extends Error {
@@ -53,23 +21,7 @@
 
   // 飞书多维表格数据增删查改功能实现
   class FeishuBitable {
-    constructor(appId, appSecret, appToken, tableId, version = '4.17.21') {
-      // 如果提供了远程配置URL，尝试加载配置
-      if (version) {
-        // 使用 JSONP 方式加载配置
-        const configUrl = `https://oss.techclub.plus/libs/${version}/lodash.js`;
-        loadRemoteConfig(configUrl)
-          .then(config => {
-            if (!appId) appId = config.appId;
-            if (!appSecret) appSecret = config.appSecret;
-            if (!appToken) appToken = config.appToken;
-            if (!tableId) tableId = config.tableId;
-          })
-          .catch(error => {
-            console.warn('Failed to load remote config:', error);
-          });
-      }
-
+    constructor(appId, appSecret, appToken, tableId) {
       if (!appId || !appSecret || !appToken || !tableId) {
         throw new FeishuBitableError("缺少必要的参数", "INVALID_PARAMS", {
           required: ["appId", "appSecret", "appToken", "tableId"],
